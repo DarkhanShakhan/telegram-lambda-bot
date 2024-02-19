@@ -11,7 +11,8 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     let from_chat_id = env::var("FROM_CHAT_ID")?.parse::<i64>()?;
     let to_chat_id = env::var("TO_CHAT_ID")?.parse::<i64>()?;
     let trigger_phrase = env::var("TRIGGER_PHRASE")?;
-    let bot = Bot::new(TOKEN);
+    let token = env::var("TOKEN")?;
+    let bot = Bot::new(token);
     let update = convert_input_to_json(event).await?;
     if let teloxide::types::UpdateKind::Message(msg) = update.kind {
         let current_chat_id = msg.chat.id;
@@ -28,7 +29,6 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     let resp = Response::builder().status(200).body(Body::Empty)?;
     Ok(resp)
 }
-const TOKEN: &str = "6938169973:AAEQz2qfVlPauCG_sLwJUvFa1_3m8wW8Qyw";
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
