@@ -13,18 +13,39 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     let trigger_phrase = env::var("TRIGGER_PHRASE")?;
     let token = env::var("TOKEN")?;
     let bot = Bot::new(token);
+    // println!("request: {:?}", event.body());
     let update = convert_input_to_json(event).await?;
-    if let teloxide::types::UpdateKind::Message(msg) = update.kind {
-        let current_chat_id = msg.chat.id;
-        println!("message from {current_chat_id}");
-        println!("message: {}", msg.text().unwrap_or("undefined"));
-        if current_chat_id.0 == from_chat_id && has_trigger_phrases(&msg, &trigger_phrase) {
-            bot.send_message(
-                ChatId(to_chat_id),
-                msg.text().unwrap_or("some notification"),
-            )
-            .await?;
+    // println!("message: {:?}", update);
+    match update.kind {
+        teloxide::types::UpdateKind::Message(msg) => {
+            let current_chat_id = msg.chat.id;
+            println!("update type is message");
+            println!("message from {current_chat_id}");
+            println!("message: {}", msg.text().unwrap_or("undefined"));
+            if current_chat_id.0 == from_chat_id && has_trigger_phrases(&msg, &trigger_phrase) {
+                bot.send_message(
+                    ChatId(to_chat_id),
+                    msg.text().unwrap_or("some notification"),
+                )
+                .await?;
+                println!("sent message to {to_chat_id}")
+            }
         }
+        teloxide::types::UpdateKind::ChannelPost(msg) => {
+            let current_chat_id = msg.chat.id;
+            println!("update type is channel post");
+            println!("message from {current_chat_id}");
+            println!("message: {}", msg.text().unwrap_or("undefined"));
+            if current_chat_id.0 == from_chat_id && has_trigger_phrases(&msg, &trigger_phrase) {
+                bot.send_message(
+                    ChatId(to_chat_id),
+                    msg.text().unwrap_or("some notification"),
+                )
+                .await?;
+                println!("sent message to {to_chat_id}")
+            }
+        }
+        _ => {}
     }
     let resp = Response::builder().status(200).body(Body::Empty)?;
     Ok(resp)
